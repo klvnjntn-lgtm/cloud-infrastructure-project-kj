@@ -202,13 +202,32 @@ Sensitive data such as database credentials and API keys are stored in SSM Param
 
 ### IAM & Access Control
 
-IAM roles follow the principle of least privilege:
+This architecture uses AWS IAM with a focus on workload-level identity and least privilege access.
 
-- IAM roles follow least privilege where practical
+#### IAM Roles for Service Accounts (OIDC)
 
-- Some services (e.g., CloudWatch, SNS) require broader permissions due to dynamic resource creation
+ECS tasks use IAM Roles for Service Accounts via OIDC-style trust relationships to securely access AWS services.
 
-- Tradeoffs are documented and scoped appropriately
+This enables:
+
+- No static AWS credentials inside containers
+- Fine-grained permission per service
+- Secure access to AWS APIs (SSM, CloudWatch, SNS)
+- Identity separation between workloads
+
+Each ECS task assumes a dedicated IAM role based on its service identity, reducing blast radius in case of compromise.
+
+#### Least Privilege Design
+
+IAM roles are scoped per service where possible.
+
+- ECS task roles are restricted to required AWS services only
+- CloudWatch/SNS permissions are granted only where monitoring is needed
+- Administrative permissions are avoided in runtime roles
+
+#### Tradeoffs
+
+Some AWS services (e.g., CloudWatch Logs, SNS, dynamic resource tagging) require broader permissions due to operational constraints, which are explicitly documented and minimized where possible.
 
 ---
 

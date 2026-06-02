@@ -1,70 +1,150 @@
 ## ECS Fargate Architecture vs Kubernetes (EKS)
 
-This project uses Amazon ECS with Fargate instead of Kubernetes (EKS) to prioritize operational simplicity, faster delivery, and reduced infrastructure overhead, while still maintaining production-grade patterns (scaling, observability, and fault tolerance).
+This project uses Amazon ECS with Fargate instead of Kubernetes (EKS) to prioritize operational simplicity, faster delivery, and reduced infrastructure overhead, while still maintaining production-grade patterns such as scaling, observability, identity management, and fault tolerance.
+
+The goal is not to avoid Kubernetes complexity, but to design a cloud-native architecture using AWS-managed primitives.
+
+---
 
 ## Decision Drivers
+
 ### Lower Operational Complexity
 
-ECS Fargate removes the need to manage:
+ECS Fargate removes the need to manage infrastructure components such as:
 
-Kubernetes control plane
-Worker nodes / cluster scaling
-Add-ons (CNI, CoreDNS, ingress controllers)
+- Kubernetes control plane
+- Worker nodes and cluster autoscaling
+- Add-ons (CNI plugins, CoreDNS, ingress controllers)
 
-Instead, compute is fully managed by AWS.
+All compute is fully managed by AWS.
 
-Kubernetes (EKS), while more powerful, introduces additional operational concerns:
+In contrast, EKS introduces additional operational responsibilities:
 
-cluster upgrades and version compatibility
-node lifecycle management
-networking complexity (CNI tuning, service discovery, ingress setup)
+- Cluster version upgrades and compatibility management
+- Node lifecycle and scaling strategies
+- Networking complexity (CNI behavior, service discovery, ingress configuration)
 
-This project intentionally avoids that complexity to focus on core cloud fundamentals:
+This project intentionally avoids these layers to focus on core AWS architecture concepts:
 
-networking, scaling behavior, and failure handling in AWS-native services
+- Networking design (VPC, subnets, routing)
+- Service-to-service communication
+- Failure handling and resilience patterns
+- IAM-based security design
+
+---
 
 ### Faster Iteration
 
-ECS enables faster deployment cycles with fewer moving parts:
+ECS enables faster infrastructure iteration due to its simplified abstraction model.
 
-Task definitions are simpler than Kubernetes manifests
-No cluster-level orchestration required
-Direct integration with ALB and IAM
+Key advantages:
+
+- Task definitions are simpler than Kubernetes manifests
+- No cluster-level orchestration required
+- Direct integration with ALB and IAM
+- Faster deployment feedback loop
 
 This makes ECS more suitable for:
 
-small-to-medium scale systems
-rapid infrastructure iteration
-portfolio projects focused on architecture clarity
+- Architecture-focused portfolio projects
+- Rapid infrastructure experimentation
+- Small to medium-scale systems
 
-### Cost Efficiency (at small scale)
+---
 
-Fargate uses a pay-per-use model (CPU / memory per task), avoiding:
+### Cost Efficiency (Small to Medium Scale)
 
-idle EC2 worker nodes
-overprovisioned clusters
+Fargate uses a pay-per-use model based on CPU and memory allocation per task.
 
-At early-stage workloads, this reduces unnecessary baseline compute cost.
+This avoids:
 
-### Observability Layer (Grafana Stack)
+- Idle EC2 worker nodes
+- Overprovisioned cluster capacity
 
-To ensure production-like visibility, the system integrates a monitoring stack using Grafana.
+At lower traffic levels, this results in more efficient baseline cost management compared to maintaining always-on infrastructure.
 
-Key Components:
-Grafana → visualization layer for metrics and system health
-CloudWatch → logs and infrastructure metrics source
-(Optional) Prometheus-style metrics depending on configuration
+---
 
-Why this matters in ECS architecture:
+### Identity & Security Model (OIDC-style IAM Integration)
 
-Since ECS is abstracted (no node access like Kubernetes), observability becomes critical for:
+This architecture uses IAM Roles for Service Accounts (OIDC-style task roles) to manage workload identity.
 
-Debugging task failures
+Each ECS task assumes a dedicated IAM role at runtime, enabling secure access to AWS services.
 
-Monitoring CPU/memory usage per service
+This allows:
 
-Tracking ALB response patterns
+- No static AWS credentials inside containers
+- Fine-grained permission control per service
+- Secure access to SSM Parameter Store, CloudWatch, and SNS
+- Clear separation of identity between services
 
-Identifying deployment regressions
+This design replaces traditional credential-based access with identity-based workload authorization.
 
-Grafana acts as the central dashboard for system visibility, replacing the introspection tools typically available in Kubernetes environments.
+---
+
+### Secrets Management (SSM Parameter Store)
+
+AWS Systems Manager (SSM) is used for centralized secrets management.
+
+Key benefits:
+
+- Secrets are not stored in application code or container images
+- ECS tasks retrieve secrets at runtime using IAM permissions
+- Centralized management of configuration values
+- Native integration with AWS KMS encryption
+
+This reduces operational overhead while maintaining secure configuration handling.
+
+---
+
+### Observability Layer (CloudWatch + Grafana)
+
+To achieve production-grade visibility, the system uses:
+
+- CloudWatch → logs, metrics, infrastructure signals
+- Grafana → centralized visualization layer
+
+#### Why this matters in ECS
+
+Unlike Kubernetes, ECS does not expose cluster-level introspection tools. As a result, observability becomes a first-class architectural concern.
+
+This setup enables:
+
+- Monitoring per-task CPU and memory usage
+- Tracking ALB latency and request patterns
+- Debugging container failures via logs
+- Detecting deployment regressions early
+
+Grafana acts as the primary operational dashboard, while CloudWatch serves as the source of truth for metrics and logs.
+
+---
+
+### Tradeoffs Summary
+
+#### Advantages
+
+- Lower operational complexity compared to Kubernetes
+- Faster deployment cycles
+- Fully managed compute and orchestration layer
+- Strong AWS-native security integration (IAM + SSM)
+- Efficient cost model for small-to-medium workloads
+
+#### Disadvantages
+
+- Less flexibility compared to Kubernetes ecosystem
+- Vendor lock-in to AWS ECS
+- Limited control over scheduling and orchestration internals
+- Fewer extensibility options compared to EKS
+
+---
+
+### Final Design Intent
+
+This architecture intentionally prioritizes:
+
+- AWS-native simplicity over orchestration complexity
+- Managed services over self-operated infrastructure
+- Identity-based security over static credentials
+- Observability as a core requirement, not an afterthought
+
+The result is a production-style system that focuses on real-world cloud architecture patterns without requiring Kubernetes-level operational overhead.
