@@ -1,170 +1,164 @@
-# 🚀 AWS architecture designed to survive real-world failure scenarios (container crashes, AZ outages, failed health checks) (ECS Fargate)
+# Production-Grade AWS Infrastructure (ECS Fargate)
 
 ## Overview
 
-This project demonstrates a resilient, production-style AWS architecture designed to handle real-world failure scenarios while maintaining high availability and observability.
+This repository demonstrates a production-style AWS architecture built using ECS Fargate and Terraform.
 
-Built using managed AWS services, the system minimizes operational overhead while ensuring scalability, fault tolerance, and cost awareness.
+The infrastructure is designed to remain available during common failure scenarios such as:
 
-[Infrastructure](docs/infrastructure.md)
+* Container crashes
+* Failed health checks
+* Availability Zone outages
+* Database failover events
 
----
-
-## Request Flow
-
-![DIAGRAM](https://github.com/klvnjntn-lgtm/cloud-infrastructure-project-kj/blob/main/docs/AWS-DIAGRAM.png)
-
-Traffic flows through a multi-layered architecture designed for isolation, resilience, and controlled exposure.
+The project emphasizes infrastructure automation, high availability, scalability, and operational simplicity using managed AWS services.
 
 ---
 
-## 🏗️ System Architecture
+## Architecture
 
-Managed, Multi-AZ infrastructure designed for 99.9% availability and automated recovery.
+![AWS Architecture Diagram](docs/AWS-DIAGRAM.png)
 
-Key Highlights
-High Availability: Multi-AZ ECS Fargate + RDS Failover.
+### Architecture Summary
 
-Security: Private networking, IAM least-privilege, and SSM Secrets.
+Client → Internet Gateway → Application Load Balancer → ECS Fargate → RDS Multi-AZ
 
-Full observability pipeline (CloudWatch metrics, logs, alarms) with real-time incident alerts pushed to Discord
+Key characteristics:
 
----
+* Multi-AZ deployment for high availability
+* Private subnet isolation for backend resources
+* Application Load Balancer with health checks
+* ECS Fargate for serverless container orchestration
+* RDS Multi-AZ for database resilience
+* Infrastructure managed with Terraform
+* Automated deployments through GitHub Actions
 
-## 🧭 Architecture Summary
-
-Client → Internet Gateway → ALB → ECS (Fargate) → RDS (Multi-AZ)
-
-- **ALB** distributes traffic across multiple AZs
-- **ECS Fargate** runs containers with self-healing
-- **RDS Multi-AZ** ensures database failover
-- **Private subnets + NAT Gateway** secure outbound access
+[Deep Dive Documentation](docs/infrastructure.md)
 
 ---
 
-## 🧱 Core Features
+## Core Components
 
-- Multi-AZ deployment for high availability  
-- Automatic container recovery (self-healing)  
-- Health check-based traffic routing  
-- Centralized logging and monitoring  
-- Real-time alerting to Discord  
-- Infrastructure as Code using Terraform  
+### ECS Fargate
 
----
+Runs containerized workloads without managing EC2 instances.
 
-## ⚙️ Tech Stack
-- Compute: ECS Fargate  
-- Load Balancing: Application Load Balancer  
-- Database: Amazon RDS (Multi-AZ)  
-- Networking: VPC, Subnets, IGW, NAT Gateway  
-- Monitoring: CloudWatch  
-- Alerts: SNS + Lambda → Discord  
-- Container Registry: ECR  
+### Application Load Balancer (ALB)
 
----
+Distributes traffic across healthy targets and Availability Zones.
 
-## 💥 Challenges and Solutions
+### Amazon RDS (Multi-AZ)
 
-Some of the noteable challenges I've encountered so far through creating this project
+Provides automatic failover and database high availability.
 
-[Challenges](docs/challenges.md)
+### Amazon VPC
+
+Network segmentation using public and private subnets.
+
+### Terraform
+
+Infrastructure as Code for repeatable and version-controlled deployments.
+
+### GitHub Actions
+
+Automated CI/CD pipeline for infrastructure and application deployments.
 
 ---
 
-## 🔍 Observability
-- Metrics: CPU, memory, latency, request count  
-- Logs: Centralized via CloudWatch Logs  
-- Alerts: Threshold-based alarms with real-time notifications  
+## Failure Handling
 
-`CloudWatch Alarm` → `SNS Topic` → `Lambda` → `Discord Webhook`
+### Container Failure
 
----
+If a container crashes, ECS automatically launches a replacement task.
 
-## 🔐 Production Hardening
-- Secrets managed via SSM Secrets Manager  
-- IAM roles follow least privilege principle  
-- HTTPS enforced using ACM + ALB  
-- Optional WAF for application-layer protection  
-- RDS Proxy for connection stability  
-- VPC Endpoints reduce NAT usage (cost optimization)  
+### Health Check Failure
 
----
+Unhealthy tasks are removed from the load balancer target group until healthy again.
 
-## 🔐 Secrets Management
+### Availability Zone Failure
 
-Sensitive data is stored using SSM Parameter Store and injected at runtime — no hardcoded credentials.
+Traffic is automatically routed to healthy targets in the remaining Availability Zone.
+
+### Database Failure
+
+RDS Multi-AZ performs automatic failover to the standby instance.
 
 ---
 
-## 🔄 CI/CD Pipeline
+## Project Documentation
 
-GitHub Push
-→ GitHub Actions builds Docker image
-→ Image pushed to Amazon ECR
-→ ECS service updated (rolling deployment)
+### Challenges Faced
 
-Deployment Strategy:
-- Zero-downtime rolling updates
-- Health checks ensure only healthy containers receive traffic
+[View Challenges](docs/challenges.md)
+
+### Design Decisions
+
+[View Decisions](docs/decisions.md)
+
+### Installation Guide
+
+[Getting Started](docs/installation.md)
+
+### Future Improvements
+
+[Future Plans](docs/future-projects.md)
 
 ---
 
-## 💸 Cost Optimization
+## Deployment
 
-- Pay-as-you-go compute (Fargate)  
-- NAT Gateway minimized via VPC endpoints  
-- Budget alerts configured via AWS Budgets  
+### 1. Clone Repository
 
----
+```bash
+git clone https://github.com/klvnjntn-lgtm/ecs-lab.git
 
-## 🚀 Deployment
+cd ecs-lab
+```
+
+### 2. Initialize Terraform
 
 ```bash
 terraform init
+```
+
+### 3. Review Planned Changes
+
+```bash
 terraform plan
+```
+
+### 4. Deploy Infrastructure
+
+```bash
 terraform apply
 ```
 
-[Installation Guide](docs/installation.md)
+---
+
+## Deployment Strategy
+
+The project supports production-style deployment patterns:
+
+* Rolling deployments through ECS Services
+* Blue/Green deployment architecture using dual target groups
+* Health-check-based traffic shifting
+* Zero-downtime application releases
 
 ---
 
-## 🔄 Deployment Strategy (ECS Native Blue-Green)
+## Skills Demonstrated
 
-Implemented blue-green-style deployments using ECS and ALB without CodeDeploy.
-
-- Two target groups (Blue / Green)
-- New version deployed to inactive target group
-- Traffic switched via ALB after health checks pass
-- Allows rollback by reverting target group
-
-Trade-off:
-- More manual control
-- Lacks automated traffic shifting (as provided by CodeDeploy)
-
-## 📌 Future Improvements
-- Grafana dashboards for visualization  
-- Advanced autoscaling tuning  
-- Canary deployments  
-
-[Future Projects](docs/future-projects.md)
-
----
-
-## 📊 Why ECS over Kubernetes
-- Lower complexity  
-- Faster iteration  
-- Better cost efficiency at smaller scale  
-
-Tradeoff: Less flexibility than Kubernetes
-
----
-
-## 🧠 Key Takeaway
-This project focuses on building a fault-tolerant, production-ready system using managed services, balancing reliability, simplicity, and cost.
-
----
+* AWS Networking (VPC, Subnets, Route Tables, NAT Gateway)
+* ECS Fargate
+* Application Load Balancer
+* RDS Multi-AZ
+* Terraform
+* Infrastructure as Code
+* CI/CD Automation
+* High Availability Design
+* Failure Recovery
+* Cloud Cost Awareness
+* Production Architecture Design
 
 
 <!-- BEGIN_TF_DOCS -->

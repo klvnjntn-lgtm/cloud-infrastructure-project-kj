@@ -1,34 +1,42 @@
-## 🚧 Future Improvements & Roadmap
+## Future Improvements & Roadmap
 
 The current system is functional and resilient, but several enhancements would further improve security, scalability, and operational maturity.
 
 ---
 
-### 🔐 Custom Domain & HTTPS Enforcement
+### Custom Domain & HTTPS Enforcement
 
 - Integrate Amazon Route 53 for domain management
+
 - Use AWS Certificate Manager (ACM) for SSL/TLS certificates
+
 - Configure Application Load Balancer to enforce HTTPS (443)
+
 - Redirect all HTTP traffic to HTTPS
 
 Impact:
+
 - Encrypts all client-server communication
+
 - Aligns with production security standards
 
 ---
 
-### 📊 Observability Enhancement (Grafana)
+### Observability Enhancement (Grafana)
 
 - Integrate Grafana with CloudWatch metrics
+
 - Build dashboards for ECS, ALB, and RDS
 
 Impact:
+
 - Improves real-time system visibility
+
 - Enables faster debugging and performance analysis
 
 ---
 
-### ⚖️ Auto Scaling Optimization
+### Auto Scaling Optimization
 
 - Implement ECS Service Auto Scaling (CPU / request-based)
 - Tune scaling thresholds based on load patterns
@@ -39,7 +47,7 @@ Impact:
 
 ---
 
-### 💰 Cost Control & Budgeting
+### Cost Control & Budgeting
 
 - Monthly budget enforced using AWS Budgets
 - Alerts triggered at:
@@ -53,7 +61,7 @@ Impact:
 
 ---
 
-## 🧭 Future Direction
+### Future Direction
 
 If this system were to evolve further:
 

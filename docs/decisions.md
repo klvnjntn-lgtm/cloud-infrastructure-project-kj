@@ -1,86 +1,66 @@
-## ⚖️ ECS (Fargate) vs Kubernetes (EKS)
+## ECS Fargate Architecture vs Kubernetes (EKS)
 
-This project uses ECS Fargate instead of EKS to prioritize simplicity, faster iteration, and reduced operational overhead.
+This project uses Amazon ECS with Fargate instead of Kubernetes (EKS) to prioritize operational simplicity, faster delivery, and reduced infrastructure overhead, while still maintaining production-grade patterns (scaling, observability, and fault tolerance).
 
----
+## Decision Drivers
+### Lower Operational Complexity
 
-### Decision Drivers
+ECS Fargate removes the need to manage:
 
-**Lower Operational Complexity**
+Kubernetes control plane
+Worker nodes / cluster scaling
+Add-ons (CNI, CoreDNS, ingress controllers)
 
-ECS with Fargate removes the need to manage control planes, worker nodes, and cluster networking.
+Instead, compute is fully managed by AWS.
 
-Kubernetes (EKS) introduces additional operational overhead:
-- Cluster provisioning and upgrades
-- Node scaling and maintenance
-- Networking complexity (CNI, service mesh, etc.)
+Kubernetes (EKS), while more powerful, introduces additional operational concerns:
 
-**Faster Iteration**
-ECS enables quicker deployments with fewer moving parts, making it more suitable for small-to-medium scale systems and rapid development cycles.
+cluster upgrades and version compatibility
+node lifecycle management
+networking complexity (CNI tuning, service discovery, ingress setup)
 
-**Cost Efficiency (at smaller scale)**
-Fargate uses a pay-per-resource model (CPU/memory), avoiding always-on compute costs required by EKS worker nodes.
+This project intentionally avoids that complexity to focus on core cloud fundamentals:
 
----
+networking, scaling behavior, and failure handling in AWS-native services
 
-### Tradeoffs
+### Faster Iteration
 
-**Reduced Flexibility**
-Kubernetes provides:
-- Greater control over scheduling and networking
-- Rich ecosystem (Helm, operators, custom controllers)
-- Better portability across cloud providers
+ECS enables faster deployment cycles with fewer moving parts:
 
----
+Task definitions are simpler than Kubernetes manifests
+No cluster-level orchestration required
+Direct integration with ALB and IAM
 
-### Decision Summary
+This makes ECS more suitable for:
 
-ECS Fargate was chosen to focus on core infrastructure reliability (networking, scaling, failure handling) without introducing unnecessary orchestration complexity.
+small-to-medium scale systems
+rapid infrastructure iteration
+portfolio projects focused on architecture clarity
 
-This decision favors execution speed and operational simplicity over maximum flexibility.
+### Cost Efficiency (at small scale)
 
----
+Fargate uses a pay-per-use model (CPU / memory per task), avoiding:
 
-## 💸 Cost Considerations
+idle EC2 worker nodes
+overprovisioned clusters
 
-The architecture balances reliability with cost, intentionally accepting higher spend in exchange for resilience and reduced operational risk.
+At early-stage workloads, this reduces unnecessary baseline compute cost.
 
----
+### Observability Layer (Grafana Stack)
 
-### Key Cost Drivers
+To ensure production-like visibility, the system integrates a monitoring stack using Grafana.
 
-**Fargate (Pay-as-you-go)**
-- No idle EC2 instances
-- Cost scales directly with workload
+Key Components:
+Grafana → visualization layer for metrics and system health
+CloudWatch → logs and infrastructure metrics source
+(Optional) Prometheus-style metrics depending on configuration
+Why this matters in ECS architecture:
 
-**NAT Gateway (Primary Cost Risk)**
-- High outbound traffic can significantly increase cost
-- Tradeoff: required to keep ECS services in private subnets
+Since ECS is abstracted (no node access like Kubernetes), observability becomes critical for:
 
-Mitigation:
-- VPC endpoints used where possible to reduce NAT usage
+debugging task failures
+monitoring CPU/memory usage per service
+tracking ALB response patterns
+identifying deployment regressions
 
-**Multi-AZ Deployment**
-- Improves availability and fault tolerance
-- Increases cost due to resource duplication across AZs
-
-**RDS Multi-AZ**
-- Provides automatic failover
-- Roughly doubles database cost compared to single-AZ
-
-**Managed Services Tradeoff**
-
-Services like Amazon RDS, Application Load Balancer, and Amazon ECS:
-- Increase direct cost
-- Reduce operational overhead and failure recovery time
-
----
-
-### Decision Summary
-
-Higher cost is intentionally accepted to:
-- Improve system reliability
-- Reduce manual intervention during failures
-- Minimize operational complexity
-
----
+Grafana acts as the central dashboard for system visibility, replacing the introspection tools typically available in Kubernetes environments.
