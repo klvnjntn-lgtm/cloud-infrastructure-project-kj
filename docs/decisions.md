@@ -54,13 +54,17 @@ Key Components:
 Grafana → visualization layer for metrics and system health
 CloudWatch → logs and infrastructure metrics source
 (Optional) Prometheus-style metrics depending on configuration
+
 Why this matters in ECS architecture:
 
 Since ECS is abstracted (no node access like Kubernetes), observability becomes critical for:
 
-debugging task failures
-monitoring CPU/memory usage per service
-tracking ALB response patterns
-identifying deployment regressions
+Debugging task failures
+
+Monitoring CPU/memory usage per service
+
+Tracking ALB response patterns
+
+Identifying deployment regressions
 
 Grafana acts as the central dashboard for system visibility, replacing the introspection tools typically available in Kubernetes environments.

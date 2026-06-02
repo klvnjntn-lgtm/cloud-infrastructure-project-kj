@@ -1,10 +1,10 @@
-## 💥 Failure Handling & Technical Challenges
+## Failure Handling & Technical Challenges
 
 This project wasn't just about successful deployments; it was a journey of navigating complex cloud dependencies and security bottlenecks. Below are the primary technical hurdles encountered and the solutions applied.
 
 ---
 
-## 1. The S3 Backend "Catch-22" (State Management Architecture)
+### 1. The S3 Backend "Catch-22" (State Management Architecture)
 
 Problem:
 
@@ -32,7 +32,7 @@ Infrastructure can now be safely destroyed and recreated without corrupting stat
 
 ---
 
-## 2. IAM OIDC Permission Scoping (The "Identity-Based Access" Challenge)
+### 2. IAM OIDC Permission Scoping (The "Identity-Based Access" Challenge)
 
 Problem:
 
@@ -61,7 +61,7 @@ CI/CD pipeline successfully provisions infrastructure with least-privilege acces
 
 ---
 
-## 3. CloudWatch Log Group Collision (State Drift & Dependency Race)
+### 3. CloudWatch Log Group Collision (State Drift & Dependency Race)
 
 Problem:
 
@@ -96,7 +96,7 @@ Stable and repeatable deployments with proper resource lifecycle management and 
 
 ---
 
-## 4. ECR Authorization Failure (CI/CD Pipeline Blocker)
+### 4. ECR Authorization Failure (CI/CD Pipeline Blocker)
 
 Problem:
 
@@ -124,7 +124,7 @@ CI/CD pipeline successfully authenticates and pushes images to ECR without manua
 
 ---
 
-## 5. Grafana Database Connection Failure (SSL Configuration Debugging)
+### 5. Grafana Database Connection Failure (SSL Configuration Debugging)
 
 Problem:
 
@@ -146,7 +146,7 @@ Without this, the database connection was rejected due to SSL enforcement.
 
 ---
 
-## Key Learnings
+### Key Learnings
 
 - Terraform state must be treated as critical infrastructure, not just configuration
 
